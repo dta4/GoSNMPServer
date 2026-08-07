@@ -680,8 +680,7 @@ func (suite *ServerTests) TestGetSetOidsMaxRepetions1() {
 		},
 	}
 	shandle := NewSNMPServer(master)
-	shandle.SetMaxRepetitions(1)
-	shandle.ListenUDP(":0", &UDPOptions{L3Proto: "udp4"})
+	shandle.ListenUDP("udp4", ":0")
 	var stopWaitChain = make(chan int)
 	go func() {
 		err := shandle.ServeForever()
