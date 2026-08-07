@@ -332,17 +332,17 @@ func (t *SubAgent) serveGetBulkRequest(i *gosnmp.SnmpPacket) (*gosnmp.SnmpPacket
 					ret.Variables = append(ret.Variables, t.getPDUNoSuchInstance(queryForOid))
 					continue
 				}
-				if item != nil && item.OnDynamicSubtree != nil {
-					t.Logger.Debugf("calling OnDynamicSubtree")
-					oids, err := item.OnDynamicSubtree()
-					if err == nil {
-						t.Logger.Debugf("setting item to item in subtree(%d)", len(*oids))
-						item, before = t.getForPDUValueControl(queryForOidStripped, *oids)
-						t.Logger.Debugf("got PDU: %v (%v)", item, before)
-					} else {
-						// no data in subtree => not found
-						item = nil
-					}
+			}
+			if item != nil && item.OnDynamicSubtree != nil {
+				t.Logger.Debugf("calling OnDynamicSubtree")
+				oids, err := item.OnDynamicSubtree()
+				if err == nil {
+					t.Logger.Debugf("setting item to item in subtree(%d)", len(*oids))
+					item, before = t.getForPDUValueControl(queryForOidStripped, *oids)
+					t.Logger.Debugf("got PDU: %v (%v)", item, before)
+				} else {
+					// no data in subtree => not found
+					item = nil
 				}
 			}
 		}
@@ -409,27 +409,27 @@ func (t *SubAgent) serveGetBulkRequest(i *gosnmp.SnmpPacket) (*gosnmp.SnmpPacket
 						t.Logger.Debugf("previous entry contains searched id")
 						item = (*searchOIDs)[item.id-1]
 					}
-					for item != nil && item.OnDynamicSubtree != nil {
-						t.Logger.Debugf("calling OnDynamicSubtree")
-						oids, err := item.OnDynamicSubtree()
-						nextItem := item.nextPDU
-						if err == nil {
-							t.Logger.Debugf("setting item to item in subtree(%d)", len(*oids))
-							(*oids)[len(*oids)-1].nextPDU = nextItem
-							searchOIDs = oids
-							item, before = t.getForPDUValueControl(queryForOidStripped, *searchOIDs)
-							t.Logger.Debugf("got PDU: %v (%v)", item, before)
-							if item == nil || item.nextPDU == nextItem {
-								t.Logger.Debugf("reset to t.OID: j=%d, jo=%d", j, jOffset)
-								searchOIDs = &t.OIDs
-							}
-							if !before {
-								item = t.NextPDU(item, 0)
-							}
-							t.Logger.Debugf("got next PDU: %v", item)
-						} else {
+				}
+				for item != nil && item.OnDynamicSubtree != nil {
+					t.Logger.Debugf("calling OnDynamicSubtree")
+					oids, err := item.OnDynamicSubtree()
+					nextItem := item.nextPDU
+					if err == nil {
+						t.Logger.Debugf("setting item to item in subtree(%d)", len(*oids))
+						(*oids)[len(*oids)-1].nextPDU = nextItem
+						searchOIDs = oids
+						item, before = t.getForPDUValueControl(queryForOidStripped, *searchOIDs)
+						t.Logger.Debugf("got PDU: %v (%v)", item, before)
+						if item == nil || item.nextPDU == nextItem {
+							t.Logger.Debugf("reset to t.OID: j=%d, jo=%d", j, jOffset)
+							searchOIDs = &t.OIDs
+						}
+						if !before {
 							item = t.NextPDU(item, 0)
 						}
+						t.Logger.Debugf("got next PDU: %v", item)
+					} else {
+						item = t.NextPDU(item, 0)
 					}
 				}
 				before = false
